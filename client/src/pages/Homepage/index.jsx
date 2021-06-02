@@ -6,13 +6,14 @@ import Search from "../../components/Search";
 import { useStore } from "../../store";
 import { useHistory } from "react-router-dom";
 import MealGrid from "../../components/MealGrid";
+import { getUser } from "../../db/users";
 
 const Homepage = () => {
   // const apiKey = '8080ada856dd4f439b4a065ae353d836';
   const apiKey = "34a95b9efbbe41dbaa0ba4b9d0d76287";
 
   const [recipesOfTheDay, setRecipesOfTheDay] = useState([]);
-  const { query, setQuery } = useStore();
+  const { query, setQuery, currentUser } = useStore();
   const history = useHistory();
   let url1;
   let url2;

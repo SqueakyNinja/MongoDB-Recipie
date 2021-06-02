@@ -13,14 +13,18 @@ const MealCard = ({ meal }) => {
   const [useEffectActivator, setUseEffectActivator] = useState(false);
 
   const handleClick = () => {
-    history.push(`/recipe/${meal.id}`);
+    if (meal._id?.length === 24) {
+      history.push(`/recipe/${meal._id}`);
+    } else {
+      history.push(`/recipe/${meal.id}`);
+    }
   };
 
   const handleSave = async (e) => {
     e.stopPropagation();
     try {
-      if (meal.id.length === 36) {
-        await saveFavouriteRecipe(currentUser.id, meal.id, null);
+      if (meal._id.length === 24) {
+        await saveFavouriteRecipe(currentUser.id, meal._id, null);
         setUseEffectActivator(!useEffectActivator);
       } else {
         await saveFavouriteRecipe(currentUser.id, null, meal.id);
@@ -39,19 +43,20 @@ const MealCard = ({ meal }) => {
 
   useEffect(() => {
     const status = async () => {
-      if (meal.id.length === 36) {
-        const getFavouriteStatus = await checkFavourite(currentUser.id, meal.id, "");
-        setFavouriteStatus(getFavouriteStatus.status);
-      } else {
-        setFavouriteStatus(false);
-      }
+      // if (meal._id.length === 36 || meal._id.length === 24) {
+      // const getFavouriteStatus = await checkFavourite(currentUser.id, meal._id, "");
+      // console.log(getFavouriteStatus);
+      // setFavouriteStatus(getFavouriteStatus.status);
+      // } else {
+      //   setFavouriteStatus(false);
+      // }
     };
     status();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [useEffectActivator, meal]);
 
   return (
-    <div key={meal.id} className={styles.MealCard}>
+    <div key={meal._id} className={styles.MealCard}>
       <Card elevation={3} className={styles.card}>
         <CardContent className={styles.content} onClick={handleClick}>
           <img src={meal.image} alt={meal.description} />

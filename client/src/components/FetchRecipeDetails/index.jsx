@@ -4,6 +4,7 @@ import axios from "axios";
 import { Paper } from "@material-ui/core";
 import RecipeDetails from "../RecipeDetails";
 import styles from "./FetchRecipeDetails.module.scss";
+import { getAllRecipes } from "../../db/recipes";
 
 const FetchRecipeDetails = () => {
   const recipeId = useParams().id;
@@ -12,9 +13,9 @@ const FetchRecipeDetails = () => {
   const [recipe, setRecipe] = useState({});
 
   const fetchRecipe = async () => {
-    if (recipeId.length === 36) {
-      const result = await axios(`/recipes?recipeId=${recipeId}`);
-      setRecipe(result.data.recipes[0]);
+    if (recipeId.length === 24) {
+      const result = await getAllRecipes("", false, "", recipeId);
+      setRecipe(result[0]);
     } else {
       const result = await axios(`https://api.spoonacular.com/recipes/${recipeId}/information?apiKey=${apiKey}`);
       setRecipe(result.data);

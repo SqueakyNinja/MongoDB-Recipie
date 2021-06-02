@@ -58,4 +58,7 @@ export interface FileWithPreview extends File {
 
 export interface IngredientFromDb {
   name: string;
+  id?: string;
+  api_id?: string;
+  _id?: string;
 }

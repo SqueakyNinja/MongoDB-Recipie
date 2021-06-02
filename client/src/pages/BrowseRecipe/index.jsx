@@ -87,12 +87,11 @@ const BrowseRecipe = () => {
       return setRecipes(result.data.results);
     } else {
       const savedRecipes = await getAllRecipes("", false, query);
-      const savedApiRecipes = savedRecipes.recipes.filter((recipe) => recipe.apiId !== null);
+      const savedApiRecipes = savedRecipes.filter((recipe) => recipe.apiId !== null);
       const filteredRecipes = result.data.results.filter(
-        (recipe) => savedApiRecipes.map((recipe) => recipe.apiId).includes(recipe.id) === false
+        (recipe) => savedApiRecipes.map((recipe) => recipe.apiId).includes(recipe._id) === false
       );
-
-      const allRecipes = [...filteredRecipes, ...savedRecipes.recipes];
+      const allRecipes = [...filteredRecipes, ...savedRecipes];
       const results = (options, query) => matchSorter(options, query, { keys: ["title"] });
       setRecipes(results(allRecipes, query));
     }

@@ -67,6 +67,7 @@ const CreateRecipe = () => {
 
   const handleSubmit = async () => {
     try {
+      console.log(recipe);
       const recipeId = await sendRecipe(recipe);
       if (files.length > 0) {
         let fileType = "";

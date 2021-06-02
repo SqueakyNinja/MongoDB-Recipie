@@ -9,14 +9,16 @@ const MyRecipes = () => {
   const { currentUser } = useStore();
   const [myRecipes, setMyRecipes] = useState([]);
   const [savedRecipes, setSavedRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getRecipes = async () => {
       try {
         const myData = await getAllRecipes(currentUser.id);
-        setMyRecipes(myData.recipes);
+        setMyRecipes(myData);
         const savedData = await getAllRecipes(currentUser.id, true);
-        setSavedRecipes(savedData.recipes);
+        setSavedRecipes(savedData);
+        setLoading(false);
       } catch (error) {
         console.log(error);
       }
@@ -25,6 +27,8 @@ const MyRecipes = () => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  if (loading) return <> </>;
 
   return (
     <Paper className={styles.myRecipesContainer}>

@@ -56,16 +56,15 @@ const Signup = () => {
       };
       try {
         const newUserSuccess = await addNewUser(newUser);
-        setSnackbar(newUserSuccess.data.reqNewUser, "success");
+        setSnackbar(newUserSuccess.data.response.message, "success");
         const newLoginData: LoginRequest = {
           username: values.current.username,
           password: values.current.password,
         };
         const newLoginTry = await sendLogin(newLoginData);
-
-        if (newLoginTry.user_id) {
+        if (!!newLoginTry) {
           const newUser = {
-            id: newLoginTry.user_id,
+            id: newLoginTry.id,
             username: newLoginTry.username,
           };
           setCurrentUser(newUser);
@@ -163,7 +162,7 @@ const Signup = () => {
         </form>
       </Paper>
     </div>
-  ) 
+  );
 };
 
 export default Signup;

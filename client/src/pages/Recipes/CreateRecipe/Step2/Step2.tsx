@@ -9,8 +9,8 @@ import { IngredientFromDb, RecipeStepProps } from "../types";
 import { ExtendedIngredient } from "../../../../../../common";
 import { combineClasses } from "../../../../utils";
 import produce from "immer";
-import axios, { AxiosResponse } from "axios";
 import { matchSorter } from "match-sorter";
+import { getAllIngredients } from "../../../../db/ingredients";
 
 const Step2 = ({ recipe, setRecipe, setExpanded, errors, setErrors }: RecipeStepProps) => {
   const { setSnackbar } = useStore();
@@ -74,8 +74,12 @@ const Step2 = ({ recipe, setRecipe, setExpanded, errors, setErrors }: RecipeStep
   //IngredientsOptions:
   useEffect(() => {
     const fetchIngredients = async () => {
-      const result: AxiosResponse<IngredientFromDb[]> = await axios("/ingredients");
-      setIngredientsOptions(result.data);
+      try {
+        const result = await getAllIngredients();
+        setIngredientsOptions(result.ingredients);
+      } catch (error) {
+        console.log(error);
+      }
     };
 
     fetchIngredients();

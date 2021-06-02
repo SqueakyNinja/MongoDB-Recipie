@@ -46,7 +46,7 @@ const Login = () => {
       try {
         const tryLogin = await sendLogin(user);
         setSnackbar(tryLogin.message, "success");
-        setCurrentUser({ username: tryLogin.username, id: tryLogin.user_id });
+        setCurrentUser({ username: tryLogin.username, id: tryLogin.id });
         history.push("/");
       } catch (error) {
         setSnackbar(error.response.data.message, "error");

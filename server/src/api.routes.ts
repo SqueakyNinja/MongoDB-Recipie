@@ -1,20 +1,27 @@
 import express from "express";
+import { getIngredients } from "./controllers/ingredientController";
 import {
   addNewRecipe,
-  allIngredients,
+  getFavourite,
+  // addNewRecipe,
   getRecipes,
   postFavourite,
-  getFavourite,
   postNewUrl,
+  // postFavourite,
+  // getFavourite,
+  // postNewUrl,
 } from "./recipes/recipes.controller";
+import { getAllUsers, getUserById, loginUser, newUser } from "./users/users.controllers";
 
-import { getAllUsers, getUserById, loginUser, newUser, removeUser, updateUser } from "./users/users.controllers";
+// import { getAllUsers, getUserById, loginUser, newUser, removeUser, updateUser } from "./users/users.controllers";
 
 const apiRouter = express.Router();
 
-apiRouter.route("/users/:user_id").get(getUserById).put(updateUser).delete(removeUser);
+apiRouter.get("/users", getAllUsers);
 
-apiRouter.route("/users").get(getAllUsers).post(newUser);
+apiRouter.get("/users/:user_id", getUserById);
+
+apiRouter.post("/users/signup", newUser);
 
 apiRouter.post("/users/login", loginUser);
 
@@ -26,6 +33,6 @@ apiRouter.post("/recipes/update", postNewUrl);
 
 apiRouter.route("/recipes/favourite").post(postFavourite).get(getFavourite);
 
-apiRouter.get("/ingredients", allIngredients);
+apiRouter.get("/ingredients", getIngredients);
 
 export default apiRouter;
