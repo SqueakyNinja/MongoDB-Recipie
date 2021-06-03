@@ -10,8 +10,15 @@ const recipeSchema = new Schema({
   servings: { type: String },
   readyInMinutes: { type: String },
   extendedIngredients: { type: String },
-  apiId: { type: String },
+  apiId: { type: Number },
   createdBy: { type: String },
 });
 
 export const Recipes = mongoose.model("Recipes", recipeSchema);
+
+const usersRecipesMapSchema = new Schema({
+  recipeId: { type: String },
+  userId: { type: String },
+});
+
+export const UsersRecipesMap = mongoose.model("UsersRecipesMap", usersRecipesMapSchema);

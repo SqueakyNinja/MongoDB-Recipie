@@ -4,12 +4,14 @@ import MealGrid from "../../../components/MealGrid";
 import { useStore } from "../../../store";
 import styles from "./index.module.scss";
 import { Paper } from "@material-ui/core";
+import { useHistory } from "react-router";
 
 const MyRecipes = () => {
-  const { currentUser } = useStore();
+  const { currentUser, setSnackbar } = useStore();
   const [myRecipes, setMyRecipes] = useState([]);
   const [savedRecipes, setSavedRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const history = useHistory();
 
   useEffect(() => {
     const getRecipes = async () => {
@@ -17,6 +19,7 @@ const MyRecipes = () => {
         const myData = await getAllRecipes(currentUser.id);
         setMyRecipes(myData);
         const savedData = await getAllRecipes(currentUser.id, true);
+
         setSavedRecipes(savedData);
         setLoading(false);
       } catch (error) {
@@ -27,6 +30,14 @@ const MyRecipes = () => {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (currentUser.id.length === 0) {
+      setSnackbar("Please login to use this feature", "info");
+      history.push("/account/login");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser]);
 
   if (loading) return <> </>;
 

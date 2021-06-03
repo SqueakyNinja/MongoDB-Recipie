@@ -1,15 +1,9 @@
+import axios from "axios";
 import express from "express";
-import { Ingredients, Recipe } from "../../../common";
+import { Mongoose } from "mongoose";
+import { Recipe } from "../../../common";
 import { RecipesResponse } from "../../../common/responses";
-import {
-  // checkFavouriteStatus,
-
-  Recipes,
-  // selectRecipes,
-  // tryAddRecipe,
-  // updateFavouriteStatus,
-  // setNewImagePath,
-} from "./recipes.model";
+import { Recipes, UsersRecipesMap } from "./recipes.model";
 
 export const getRecipes: express.RequestHandler<
   {},
@@ -23,12 +17,21 @@ export const getRecipes: express.RequestHandler<
       const recipes = await Recipes.find({ createdBy: req.query.userId });
       res.send({ recipes });
     } else if (!!req.query.userId && getSavedRecipes) {
+      console.log("getting saved recipes");
+
       const recipes = await Recipes.aggregate([
+        { $addFields: { recipe_id: { $toString: "$_id" } } },
         {
-          $lookup: { from: "usersRecipesMap", localField: "_id", foreignField: "recipeId", as: "usersRecipesMap" },
+          $lookup: {
+            from: "usersrecipesmaps",
+            localField: "recipe_id",
+            foreignField: "recipeId",
+            as: "userRecipeMap",
+          },
         },
-        { $match: { usersRecipesMap: { $elemMatch: { userId: req.query.userId } } } },
+        { $match: { userRecipeMap: { $elemMatch: { userId: req.query.userId } } } },
       ]);
+
       res.send({ recipes });
     } else if (!!req.query.searchStr.length) {
       const regex = new RegExp(`(^|[\s])(${req.query.searchStr})`, "gim");
@@ -48,8 +51,6 @@ export const getRecipes: express.RequestHandler<
 
 export const addNewRecipe: express.RequestHandler<{}, {}, { recipe: Recipe }> = async (req, res) => {
   try {
-    console.log(req.body.recipe.analyzedInstructions);
-    console.log(JSON.stringify(req.body.recipe.analyzedInstructions));
     const parsedRecipe = {
       title: req.body.recipe.title,
       image: req.body.recipe.image,
@@ -61,7 +62,7 @@ export const addNewRecipe: express.RequestHandler<{}, {}, { recipe: Recipe }> = 
       extendedIngredients: JSON.stringify(req.body.recipe.extendedIngredients),
       createdBy: req.body.recipe.createdBy,
     };
-    console.log(parsedRecipe);
+
     const newRecipe = await Recipes.create(parsedRecipe);
     console.log(newRecipe);
     const recipeId = newRecipe._id;
@@ -85,48 +86,50 @@ export const postFavourite: express.RequestHandler<{}, {}, { userId: string; rec
   async (req, res) => {
     try {
       const { userId, recipeId, apiId } = req.body;
-      // const favouriteStatus = await updateFavouriteStatus(userId, recipeId, apiId);
-      // res.status(200).send({ status: favouriteStatus });
+      console.log(userId);
+      console.log(recipeId);
+      console.log(apiId);
+      let fetchedRecipeId = recipeId;
+      if (apiId) {
+        const existingRecipe = await Recipes.find({ apiId: apiId });
+        if (!!existingRecipe.length) {
+          fetchedRecipeId = existingRecipe[0]._id;
+          console.log(fetchedRecipeId);
+        } else {
+          const apiKey = "8080ada856dd4f439b4a065ae353d836";
+          const { data } = await axios(`https://api.spoonacular.com/recipes/${apiId}/information?apiKey=${apiKey}`);
+          const newRecipe = {
+            title: data.title,
+            sourceName: data.sourceName ? `${data.sourceName}, ${data.sourceUrl}` : data.sourceUrl,
+            servings: data.servings,
+            readyInMinutes: data.readyInMinutes,
+            extendedIngredients: JSON.stringify(data.extendedIngredients),
+            image: data.image,
+            dishTypes: JSON.stringify(data.dishTypes),
+            analyzedInstructions: JSON.stringify(data.analyzedInstructions),
+            apiId,
+          };
+          const addRecipe = await Recipes.create(newRecipe);
+
+          console.log(addRecipe);
+          fetchedRecipeId = addRecipe._id;
+        }
+      }
+
+      // Add or remove favourite recipe for a user
+
+      const count = await UsersRecipesMap.find({ recipeId: fetchedRecipeId, userId });
+      if (count.length) {
+        await UsersRecipesMap.deleteOne({ recipeId: fetchedRecipeId, userId });
+      } else {
+        await UsersRecipesMap.create({ recipeId: fetchedRecipeId, userId });
+      }
+      res.status(201).send({ status: "added" });
     } catch (error) {
       console.log(error);
       res.status(400).send({ message: error.message });
     }
   };
-
-// export const updateFavouriteStatus = async (userId: string, recipeId?: string, apiId?: number) => {
-//   if (apiId) {
-//     const [existingRecipe] = await db("recipes").where({ apiId });
-//     if (!!existingRecipe) {
-//       recipeId = existingRecipe._id;
-//     } else {
-//       const apiKey = "8080ada856dd4f439b4a065ae353d836";
-//       const { data } = await axios(`https://api.spoonacular.com/recipes/${apiId}/information?apiKey=${apiKey}`);
-//       const newRecipe = {
-//         title: data.title,
-//         sourceName: data.sourceName ? `${data.sourceName}, ${data.sourceUrl}` : data.sourceUrl,
-//         servings: data.servings,
-//         readyInMinutes: data.readyInMinutes,
-//         extendedIngredients: JSON.stringify(data.extendedIngredients),
-//         image: data.image,
-//         dishTypes: JSON.stringify(data.dishTypes),
-//         analyzedInstructions: JSON.stringify(data.analyzedInstructions),
-//         apiId,
-//       };
-//       const [returnedId] = await db("recipes").insert(newRecipe).returning("id");
-//       recipeId = returnedId;
-//     }
-//   }
-
-//   // Add or remove favourite recipe for a user
-
-//   const count = await db("usersRecipesMap").where({ recipeId, userId });
-
-//   if (count.length) {
-//     await db("usersRecipesMap").delete().where({ recipeId, userId });
-//   } else {
-//     await db("usersRecipesMap").insert({ recipeId, userId });
-//   }
-// };
 
 export const getFavourite: express.RequestHandler<{}, {}, {}, { userId: string; recipeId?: string }> = async (
   req,
@@ -134,15 +137,10 @@ export const getFavourite: express.RequestHandler<{}, {}, {}, { userId: string; 
 ) => {
   try {
     const { userId, recipeId } = req.query;
-    // const favouriteStatus = await checkFavouriteStatus(userId, recipeId ?? "");
-    // res.status(200).send({ status: favouriteStatus });
+    const favouriteStatus = await UsersRecipesMap.find({ userId, recipeId });
+    res.status(200).send({ status: favouriteStatus });
   } catch (error) {
     console.log(error);
     res.status(400).send({ message: error.message });
   }
 };
-
-// export const checkFavouriteStatus = async (userId: string, recipeId: string) => {
-//   const count = await db("usersRecipesMap").where({ userId, recipeId });
-//   return !!count.length;
-// };

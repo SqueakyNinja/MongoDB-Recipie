@@ -13,20 +13,18 @@ const MealCard = ({ meal }) => {
   const [useEffectActivator, setUseEffectActivator] = useState(false);
 
   const handleClick = () => {
-    if (meal._id?.length === 24) {
-      history.push(`/recipe/${meal._id}`);
-    } else {
-      history.push(`/recipe/${meal.id}`);
-    }
+    history.push(`/recipe/${meal.id}`);
   };
 
   const handleSave = async (e) => {
     e.stopPropagation();
     try {
-      if (meal._id.length === 24) {
-        await saveFavouriteRecipe(currentUser.id, meal._id, null);
+      if (meal.id.toString().length === 24) {
+        console.log("sending saved recipe");
+        await saveFavouriteRecipe(currentUser.id, meal.id, null);
         setUseEffectActivator(!useEffectActivator);
       } else {
+        console.log("sending api recipe");
         await saveFavouriteRecipe(currentUser.id, null, meal.id);
         setUseEffectActivator(!useEffectActivator);
       }
@@ -43,13 +41,12 @@ const MealCard = ({ meal }) => {
 
   useEffect(() => {
     const status = async () => {
-      // if (meal._id.length === 36 || meal._id.length === 24) {
-      // const getFavouriteStatus = await checkFavourite(currentUser.id, meal._id, "");
-      // console.log(getFavouriteStatus);
-      // setFavouriteStatus(getFavouriteStatus.status);
-      // } else {
-      //   setFavouriteStatus(false);
-      // }
+      if (meal.id?.length === 24) {
+        const getFavouriteStatus = await checkFavourite(currentUser.id, meal.id, null);
+        setFavouriteStatus(!!getFavouriteStatus.status.length);
+      } else {
+        setFavouriteStatus(false);
+      }
     };
     status();
     // eslint-disable-next-line react-hooks/exhaustive-deps

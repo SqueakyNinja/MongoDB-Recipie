@@ -40,14 +40,11 @@ export const saveFavouriteRecipe = async (userId: string, recipeId?: string, api
     recipeId,
     apiId,
   });
-  console.log(setFavouriteResponse);
-  // return setFavouriteResponse.data;
 };
 
 export const checkFavourite = async (userId: string, recipeId = "") => {
   const checkFavouriteResponse = await axios.get(`/recipes/favourite?userId=${userId}&recipeId=${recipeId}`);
-  console.log(checkFavouriteResponse);
-  // return checkFavouriteResponse.data;
+  return checkFavouriteResponse.data;
 };
 
 export const updatedImagePath = async (recipeId: string, newURL: string) => {
